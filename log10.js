@@ -34,41 +34,43 @@ async function getSessionId() {
 }
 
 // Global variable to store the current sessionID.
-let sessionID;
-getSessionId()
-  .then((id) => {
-    sessionID = id;
-    console.log(`Log10 sessionID: ${sessionID}`);
-  })
-  .catch((error) => {
-    console.error(error);
-  });
+let sessionID = getSessionId();
+
+const completionUrl = url.concat("/api/completions");
+
+async function getCompletionID() {
+  try {
+    const res = await axios.post(
+      completionUrl,
+      {
+        organization_id: orgId,
+      },
+      {
+        headers: {
+          "x-log10-token": token,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    const completionID = res.data.completionID;
+    console.log(`Log10 completionID: ${completionID}`);
+    return completionID;
+  } catch (e) {
+    throw new Error("Failed to create LOG10 completion: " + e.message);
+  }
+}
 
 function interceptFunction(fn) {
-  return async function (...args) {
-    const stackTrace = await import("stack-trace");
-    logger.info(`Calling function: ${fn.name}`);
-    let output = null;
-    try {
-      const completionUrl = url.concat("/api/completions");
-      const res = await axios.post(
-        completionUrl,
-        {
-          organization_id: orgId,
-        },
-        {
-          headers: {
-            "x-log10-token": token,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-      const completionID = res.data.completionID;
-      console.log(`Log10 completionID: ${completionID}`);
-      const req = JSON.stringify(args[0]);
-      console.log(`args = ${req}`);
+  return function (...args) {
+    logger.info(
+      `Calling function: ${fn.name}(${JSON.stringify(args, null, 2)})`
+    );
+    const startTime = performance.now();
 
-      await axios.post(
+    const completionID = getCompletionID();
+
+    Promise.all([completionID, sessionID]).then(([completionID, sessionID]) =>
+      axios.post(
         `${completionUrl}/${completionID}`,
         {
           status: "started",
@@ -84,38 +86,51 @@ function interceptFunction(fn) {
             "Content-Type": "application/json",
           },
         }
-      );
+      )
+    );
 
-      const currentStackFrame = stackTrace.get();
-      const stacktrace = currentStackFrame.map((frame) => ({
-        file: frame.getFileName(),
-        line: frame.getLineNumber(),
-        lineno: frame.getLineNumber(),
-        name: frame.getFunctionName(),
-      }));
+    const output = fn.apply(this, args);
 
-      const startTime = performance.now();
-      const output = await fn.apply(this, args);
-      const duration = performance.now() - startTime;
-      console.log(`TIMED BLOCK - OpenAI call duration: ${duration}`);
+    return Promise.all([output, completionID]).then(
+      ([output, completionID]) => {
+        const duration = performance.now() - startTime;
+        logger.info(`Function ${fn.name} returned: ${output} in ${duration}ms`);
 
-      const logRow = {
-        response: JSON.stringify(output.data),
-        status: "finished",
-        duration: Math.round(duration),
-        stacktrace: JSON.stringify(stacktrace),
-      };
+        const currentStackFrame = stackTrace.get();
+        const stacktrace = currentStackFrame.map((frame) => ({
+          file: frame.getFileName(),
+          line: frame.getLineNumber(),
+          lineno: frame.getLineNumber(),
+          name: frame.getFunctionName(),
+        }));
 
-      await axios.post(`${completionUrl}/${completionID}`, logRow, {
-        headers: {
-          "x-log10-token": token,
-          "Content-Type": "application/json",
-        },
-      });
-      return output;
-    } catch (e) {
-      console.error("failed", e);
-    }
+        return axios
+          .post(
+            `${completionUrl}/${completionID}`,
+            {
+              response: JSON.stringify(output.data),
+              status: "finished",
+              duration: Math.round(duration),
+              stacktrace: JSON.stringify(stacktrace),
+            },
+            {
+              headers: {
+                "x-log10-token": token,
+                "Content-Type": "application/json",
+              },
+            }
+          )
+          .then(() => output);
+      }
+    );
+
+    //   const currentStackFrame = stackTrace.get();
+    //   const stacktrace = currentStackFrame.map((frame) => ({
+    //     file: frame.getFileName(),
+    //     line: frame.getLineNumber(),
+    //     lineno: frame.getLineNumber(),
+    //     name: frame.getFunctionName(),
+    //   }));
   };
 }
 
