@@ -62,12 +62,20 @@ function interceptFunction(fn) {
 
       const sessionID = await sessionIDPromise;
 
+      // TODO: Make backend handle the translation.
+      let qualname = "Completion.create";
+      if (fn.name === "createCompletion") {
+        qualname = "Completion.create";
+      } else if (fn.name === "createChatCompletion") {
+        qualname = "ChatCompletion.create";
+      }
+
       await axios.post(
         `${completionUrl}/${completionID}`,
         {
           status: "started",
           orig_module: fn.name,
-          orig_qualname: "Completion.create", // todo backend needs to handle openai js lib
+          orig_qualname: qualname,
           request: JSON.stringify(args[0]),
           session_id: sessionID,
           organization_id: orgId,
