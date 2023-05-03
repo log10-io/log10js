@@ -10,7 +10,7 @@
   },
   "name": "log10js",
   "description": "⚡ Unified LLM data management ⚡",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "main": "log10.js",
   "directories": {
     "example": "examples"
