@@ -41,8 +41,6 @@ Prompt chains such as those in [Langchain](https://github.com/hwchase17/langchai
 
 ```javascript
 const { OpenAI } = require("langchain/llms/openai");
-const { loadSummarizationChain } = require("langchain/chains");
-const { Document } = require("langchain/document");
 const { Configuration, OpenAIApi } = require("openai");
 const log10 = require("log10js");
 
