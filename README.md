@@ -8,8 +8,8 @@
 ## Quick Install
 
 ``` bash
-npm install log10
-yarn add log10
+npm install log10js
+yarn add log10js
 ```
 
 ## 🤔 What is this?
@@ -18,7 +18,7 @@ A JavaScript integration to manage your LLM data.
 
 ```javascript
 const { Configuration, OpenAIApi } = require("openai");
-const log10 = require("log10");
+const log10 = require("log10js");
 
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
@@ -30,12 +30,35 @@ const openai = new log10_OpenAIApi(configuration);
 
 Access your LLM data at [log10.io](https://log10.io)
 
+[See full example](./examples/completions.js)
+
 
 ## 🚀 What can this help with?
 
 **🔍🐞 Prompt chain debugging**
 
 Prompt chains such as those in [Langchain](https://github.com/hwchase17/langchain) can be difficult to debug. Log10 provides prompt provenance, session tracking and call stack functionality to help debug chains.
+
+```javascript
+const { OpenAI } = require("langchain/llms/openai");
+const { loadSummarizationChain } = require("langchain/chains");
+const { Document } = require("langchain/document");
+const { Configuration, OpenAIApi } = require("openai");
+const log10 = require("log10js");
+
+const log10_OpenAIApi = log10(OpenAIApi);
+const openai = new log10_OpenAIApi(
+  new Configuration({
+    apiKey: process.env.OPENAI_API_KEY,
+  })
+);
+let model = new OpenAI();
+model.client = openai;
+
+// Run any chain here...
+```
+
+[See full example](./examples/langchain_summarize.js)
 
 **📝📊 Logging**
 

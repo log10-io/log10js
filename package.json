@@ -7,5 +7,32 @@
     "openai": "^3.2.1",
     "perf_hooks": "^0.0.1",
     "stack-trace": "^1.0.0-pre2"
-  }
+  },
+  "name": "log10js",
+  "description": "⚡ Unified LLM data management ⚡",
+  "version": "0.0.1",
+  "main": "log10.js",
+  "directories": {
+    "example": "examples"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/log10-io/log10js.git"
+  },
+  "keywords": [
+    "OpenAI",
+    "LLMs",
+    "Tracing",
+    "LangChain"
+  ],
+  "author": "team@log10.io",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/log10-io/log10js/issues"
+  },
+  "homepage": "https://github.com/log10-io/log10js#readme"
 }

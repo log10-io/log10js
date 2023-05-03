@@ -34,15 +34,7 @@ async function getSessionId() {
 }
 
 // Global variable to store the current sessionID.
-let sessionID;
-getSessionId()
-  .then((id) => {
-    sessionID = id;
-    console.log(`Log10 sessionID: ${sessionID}`);
-  })
-  .catch((error) => {
-    console.error(error);
-  });
+let sessionIDPromise = getSessionId();
 
 function interceptFunction(fn) {
   return async function (...args) {
@@ -67,6 +59,8 @@ function interceptFunction(fn) {
       console.log(`Log10 completionID: ${completionID}`);
       const req = JSON.stringify(args[0]);
       console.log(`args = ${req}`);
+
+      const sessionID = await sessionIDPromise;
 
       await axios.post(
         `${completionUrl}/${completionID}`,
